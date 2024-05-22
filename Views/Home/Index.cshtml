@@ -1,0 +1,338 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<script src="~/Scripts/jquery-3.4.1.js"></script>
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        text-align: center;
+        padding: 5px;
+    }
+
+    .margintop20 {
+        margin-top: 20px;
+    }
+
+    .mainDiv {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-bottom: 10px;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <span class="page-header">Voting App</span>
+    </div>
+</div>
+<div class="row margintop20">
+    <div style="border-bottom:1px">
+        <div class="alert alert-success" id="success-alert">
+            <button type="button" class="close" data-dismiss="alert">x</button>
+             <span id="divAlert"></span> <strong>Successfully! </strong>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 mainDiv">
+
+        <table id="tblVoters" style="width:100%; margin-top:20px">
+            <thead>
+                <tr>
+                    <th colspan="2">
+                        Voters
+                        <div style="float:right; margin-right:5px">
+                            <button class="glyphicon glyphicon-plus" data-toggle="modal" data-target="#voterModal"></button>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th style="width:75%">Name</th>
+                    <th>Has Voted</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-6 mainDiv">
+
+        <table id="tblCandidates" style="width:100%; margin-top:20px">
+            <thead>
+                <tr>
+                    <th colspan="2">
+                        Candidates
+                        <div style="float:right; margin-right:5px">
+                            <button class="glyphicon glyphicon-plus" data-toggle="modal" data-target="#candidateModal"></button>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th style="width:75%">Name</th>
+                    <th>Votes</th>
+                </tr>
+            </thead>
+            <tbody>
+               
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row margintop20">
+    <div class="col-md-12">
+        <span class="page-header">
+            Vote!
+        </span>
+    </div>
+</div>
+<div class="row margintop20">
+    <div class="col-md-4">
+        <select id="ddlVoters" class="form-control">
+        </select>
+    </div>
+    <div class="col-md-4">
+        <select id="ddlCandidates" class="form-control"></select>
+    </div>
+    <div class="col-md-4">
+        <input type="button" value="Submit" class="btn btn-primary" onclick="return fnVote();" />
+    </div>
+</div>
+
+<div class="modal fade" id="voterModal" tabindex="-1" role="dialog" aria-labelledby="voterModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col-md-3" style="font-weight:bold;">Add Voter</div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-2">Name</div>
+                    <div class="col-md-6">
+                        <input type="text" id="txtVoterName" class="form-control" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="return fnAdd('voter');">Add Voter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="candidateModal" tabindex="-1" role="dialog" aria-labelledby="candidateModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col-md-4" style="font-weight:bold;">Add Candidate</div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-2">Name</div>
+                    <div class="col-md-6">
+                        <input type="text" id="txtCandidateName" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="return fnAdd('candidate');">Add Candidate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#success-alert").hide();
+       
+        fnLoadData();
+    });
+
+    function fnLoadData() {
+        $.ajax({
+            type: "POST",
+            url: "GetHomePageData",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                debugger;
+                $("#ddlCandidates").empty();
+                $("#ddlVoters").empty();
+                if (response.voters.length > 0) {
+                    result = response.voters;
+                    $("#tblVoters > tbody").empty();
+                    for (var i = 0; i < result.length; i++) {
+                        $('#tblVoters').append('<tr><td>' + result[i].Name + '</td><td>' + (result[i].HasVoted == true ? 'V' : 'X') + '</td></tr>');
+                    }
+                }
+
+                if (response.candidates.length > 0) {
+                    result = response.candidates;
+                    var appenddata1 = "<option value = '0'>I vote for</option>";
+                    $("#tblCandidates > tbody").empty();
+                    for (var i = 0; i < result.length; i++) {
+                        $('#tblCandidates').append('<tr><td>' + result[i].Name + '</td><td>' + result[i].Votes + '</td></tr>');
+                        appenddata1 += "<option value = '" + result[i].Id + " '>" + result[i].Name + " </option>";
+                    }
+                    $("#ddlCandidates").append(appenddata1);
+                }
+
+                if (response.nonVoters.length > 0) {
+                    nonVoters = response.nonVoters;
+                    var appenddata1 = "<option value = '0'>I am</option>";
+
+                    var jsonData1 = nonVoters;
+                    for (var i = 0; i < jsonData1.length; i++) {
+                        appenddata1 += "<option value = '" + jsonData1[i].Id + " '>" + jsonData1[i].Name + " </option>";
+                    }
+                    $("#ddlVoters").append(appenddata1);
+                }
+
+            },
+            failure: function (response) {
+                alert('Error in getting data!');
+            }
+        });
+    }
+
+    function fnAdd(type) {
+        if (type == 'voter') {
+            name = $('#txtVoterName').val();
+        }
+        else {
+            name = $('#txtCandidateName').val();
+        }
+
+        if (name == '') {
+            alert('Please enter name');
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "AddData",
+            data: JSON.stringify({ 'type': type, 'name': name }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                debugger;
+                fnRefreshList(type);
+                $('.btn-secondary').click();
+                var result = response.lst;
+                if (type == 'voter') {
+                    $('#txtVoterName').val('');
+                    $("#tblVoters > tbody").empty();
+                    for (var i = 0; i < result.length; i++) {
+                        $('#tblVoters').append('<tr><td>' + result[i].Name + '</td><td>' + (result[i].HasVoted == true ? 'V' : 'X') + '</td></tr>');
+                    }
+                    
+                    $('#divAlert').html('Voter added');
+                    $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-alert").slideUp(500);
+                    });
+                }
+                else {
+                    $('#txtCandidateName').val('');
+                    $("#tblCandidates > tbody").empty();
+                    for (var i = 0; i < result.length; i++) {
+                        $('#tblCandidates').append('<tr><td>' + result[i].Name + '</td><td>' + result[i].Votes + '</td></tr>');
+                    }
+                    $('#divAlert').html('Candidate added');
+                    $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-alert").slideUp(500);
+                    });
+                }
+            },
+            failure: function (response) {
+                alert('Error in getting data!');
+            }
+        });
+    }
+
+    function fnRefreshList(type) {
+        if (type == 'voter') {
+            methodName = 'GetNonVoters';
+        }
+        else {
+            methodName = 'GetCandidates';
+        }
+
+        $.ajax({
+            type: "POST",
+            url: methodName,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                debugger;
+                if (type == 'voter') {
+                    $("#ddlVoters").empty();
+                    nonVoters = response.nonVoters;
+                    var appenddata1 = "<option value = '0'>I am</option>";
+
+                    var jsonData1 = nonVoters;
+                    for (var i = 0; i < jsonData1.length; i++) {
+                        appenddata1 += "<option value = '" + jsonData1[i].Id + " '>" + jsonData1[i].Name + " </option>";
+                    }
+                    $("#ddlVoters").append(appenddata1);
+                }
+                else {
+                    $("#ddlCandidates").empty();
+                    result = response.candidates;
+                    var appenddata1 = "<option value = '0'>I vote for</option>";
+                    for (var i = 0; i < result.length; i++) {
+                        appenddata1 += "<option value = '" + result[i].Id + " '>" + result[i].Name + " </option>";
+                    }
+                    $("#ddlCandidates").append(appenddata1);
+                }
+            },
+            failure: function (response) {
+                alert('Error in getting data!');
+            }
+        });
+    }
+
+    function fnVote() {
+        var voterId = $('#ddlVoters').val();
+        var candidateId = $('#ddlCandidates').val();
+
+        if (voterId == '0') {
+            alert('Please select voter');
+            return false;
+        }
+
+        if (candidateId == '0') {
+            alert('Please select candidate');
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "AddVote",
+            data: JSON.stringify({ 'candidateId': candidateId, 'voterId': voterId }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                debugger;
+                fnLoadData();
+                
+                $('#divAlert').html('Voted');
+                $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#success-alert").slideUp(500);
+                });
+            },
+            failure: function (response) {
+                alert('Error in getting data!');
+            }
+        });
+    }
+</script>
